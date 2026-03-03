@@ -40,7 +40,7 @@ public class ExchangeRateDatabase {
             new ExchangeRate("THB", 35.328),
             new ExchangeRate("ZAR", 13.1446)
     };
-
+    private final static int PRECISION = 3;
     private final static Map<String, Double> CURRENCIES_MAP = new HashMap<>();
 
     private final static String[] CURRENCIES_LIST;
@@ -77,6 +77,7 @@ public class ExchangeRateDatabase {
      * @return converted value
      */
     public double convert(double value, String currencyFrom, String currencyTo) {
-        return value / CURRENCIES_MAP.get(currencyFrom) * CURRENCIES_MAP.get(currencyTo);
+        double result = value / CURRENCIES_MAP.get(currencyFrom) * CURRENCIES_MAP.get(currencyTo);
+        return (int) (result * Math.pow(10, PRECISION)) / Math.pow(10, PRECISION);
     }
 }
