@@ -77,7 +77,11 @@ public class ExchangeRateDatabase {
      * @return converted value
      */
     public double convert(double value, String currencyFrom, String currencyTo) {
-        double result = value / CURRENCIES_MAP.get(currencyFrom) * CURRENCIES_MAP.get(currencyTo);
+        double result = value / getExchangeRate(currencyFrom) * getExchangeRate(currencyTo);
         return (int) (result * Math.pow(10, PRECISION)) / Math.pow(10, PRECISION);
+    }
+
+    public ExchangeRate[] getRates() {
+        return RATES;
     }
 }
