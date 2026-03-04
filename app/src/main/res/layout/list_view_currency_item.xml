@@ -5,9 +5,15 @@
     android:layout_height="match_parent"
     android:orientation="horizontal">
 
+    <ImageView
+        android:id="@+id/imageView_flag"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="Flag for currency" />
+
     <TextView
         android:id="@+id/textView_currencyName"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:gravity="center_vertical"
         android:minHeight="40dp"
@@ -18,7 +24,7 @@
 
     <TextView
         android:id="@+id/textView_currencyRate"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:gravity="center_vertical"
         android:minHeight="40dp"
