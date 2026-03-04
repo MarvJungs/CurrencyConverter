@@ -80,8 +80,4 @@ public class ExchangeRateDatabase {
         double result = value / getExchangeRate(currencyFrom) * getExchangeRate(currencyTo);
         return (int) (result * Math.pow(10, PRECISION)) / Math.pow(10, PRECISION);
     }
-
-    public ExchangeRate[] getRates() {
-        return RATES;
-    }
 }

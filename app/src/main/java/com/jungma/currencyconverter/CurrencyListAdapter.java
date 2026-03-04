@@ -7,23 +7,22 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import java.util.List;
 
 public class CurrencyListAdapter extends BaseAdapter {
-    private List<ExchangeRate> data;
+    private final ExchangeRateDatabase exchangeRateDatabase;
 
-    public CurrencyListAdapter(List<ExchangeRate> data) {
-        this.data = data;
+    public CurrencyListAdapter(ExchangeRateDatabase exchangeRateDatabase) {
+        this.exchangeRateDatabase = exchangeRateDatabase;
     }
 
     @Override
     public int getCount() {
-        return data.size();
+        return exchangeRateDatabase.getCurrencies().length;
     }
 
     @Override
     public Object getItem(int position) {
-        return data.get(position);
+        return exchangeRateDatabase.getCurrencies()[position];
     }
 
     @Override
@@ -34,7 +33,7 @@ public class CurrencyListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         Context context = parent.getContext();
-        ExchangeRate exchangeRate = (ExchangeRate) getItem(position);
+        String currency = (String) getItem(position);
 
         if (convertView == null) {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -44,8 +43,8 @@ public class CurrencyListAdapter extends BaseAdapter {
         TextView textView_currencyName = convertView.findViewById(R.id.textView_currencyName);
         TextView textView_currencyRate = convertView.findViewById(R.id.textView_currencyRate);
 
-        textView_currencyName.setText(exchangeRate.getCurrencyName());
-        textView_currencyRate.setText(Double.toString(exchangeRate.getRateForOneEuro()));
+        textView_currencyName.setText(currency);
+        textView_currencyRate.setText(Double.toString(exchangeRateDatabase.getExchangeRate(currency)));
 
         return convertView;
     }

@@ -31,10 +31,10 @@ public class MainActivity extends AppCompatActivity {
         });
         Spinner spinner_currencyFrom = findViewById(R.id.spinner_currencyFrom);
         Spinner spinner_currencyTo = findViewById(R.id.spinner_currencyTo);
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(this, R.layout.spinner_view_item, R.id.textview_spinner, exchangeRateDatabase.getCurrencies());
+        CurrencyListAdapter currencyListAdapter = new CurrencyListAdapter(exchangeRateDatabase);
 
-        spinner_currencyFrom.setAdapter(arrayAdapter);
-        spinner_currencyTo.setAdapter(arrayAdapter);
+        spinner_currencyFrom.setAdapter(currencyListAdapter);
+        spinner_currencyTo.setAdapter(currencyListAdapter);
     }
 
     public void calculate(View view) {
