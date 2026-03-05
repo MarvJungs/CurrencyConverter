@@ -13,14 +13,17 @@ import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.ShareActionProvider;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
+import androidx.core.view.MenuItemCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity {
     private final ExchangeRateDatabase exchangeRateDatabase = new ExchangeRateDatabase();
     private final int PRECISION = 3;
+    private ShareActionProvider shareActionProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.appbar_menu, menu);
+        MenuItem shareItem = menu.findItem(R.id.appbar_menu_entry_share);
+        shareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
         return true;
     }
 
@@ -74,6 +79,17 @@ public class MainActivity extends AppCompatActivity {
         double displayedResult = (int) (result * Math.pow(10, PRECISION)) / Math.pow(10, PRECISION);
 
         textView_result.setText(Double.toString(displayedResult));
+        String sharedText = String.format("Converted %.2f %s to %.2f %s", amount, currency_from, displayedResult, currency_to);
+        setShareText(sharedText);
+    }
+
+    private void setShareText(String text) {
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        if (text != null) {
+            shareIntent.putExtra(Intent.EXTRA_TEXT, text);
+        }
+        shareActionProvider.setShareIntent(shareIntent);
     }
 
 }
