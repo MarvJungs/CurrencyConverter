@@ -20,6 +20,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity {
     private final ExchangeRateDatabase exchangeRateDatabase = new ExchangeRateDatabase();
+    private final int PRECISION = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,8 +71,9 @@ public class MainActivity extends AppCompatActivity {
         double amount = Double.parseDouble(input_amount.getText().toString());
 
         double result = exchangeRateDatabase.convert(amount, currency_from, currency_to);
+        double displayedResult = (int) (result * Math.pow(10, PRECISION)) / Math.pow(10, PRECISION);
 
-        textView_result.setText(Double.toString(result));
+        textView_result.setText(Double.toString(displayedResult));
     }
 
 }

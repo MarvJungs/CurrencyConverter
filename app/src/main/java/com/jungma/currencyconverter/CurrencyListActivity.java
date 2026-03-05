@@ -1,6 +1,10 @@
 package com.jungma.currencyconverter;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -30,5 +34,11 @@ public class CurrencyListActivity extends AppCompatActivity {
 
         ListView listView = findViewById(R.id.currency_list);
         listView.setAdapter(currencyListAdapter);
+
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            String currency = (String) currencyListAdapter.getItem(position);
+            Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0`?q=" + exchangeRateDatabase.getCapital(currency)));
+            startActivity(mapIntent);
+        });
     }
 }
