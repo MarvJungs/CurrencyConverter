@@ -84,4 +84,8 @@ public class ExchangeRateDatabase {
     public double convert(double value, String currencyFrom, String currencyTo) {
         return value / getExchangeRate(currencyFrom) * getExchangeRate(currencyTo);
     }
+
+    public void setExchangeRate(String currency, double exchangeRate) {
+        CURRENCIES_MAP.get(currency).setRateForOneEuro(exchangeRate);
+    }
 }
