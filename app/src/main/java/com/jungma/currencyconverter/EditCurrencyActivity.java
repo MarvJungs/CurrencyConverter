@@ -27,7 +27,10 @@ public class EditCurrencyActivity extends AppCompatActivity {
             return insets;
         });
 
+        TextView headerText = findViewById(R.id.textView_editCurrency);
+        headerText.setText("Edit Currency: " + getIntent().getStringExtra("currencyName"));
         EditText editText = findViewById(R.id.editText_currencyRate);
+        editText.setText(Double.toString(getIntent().getDoubleExtra("rateForOneEuro", 0.0)));
         editText.setOnEditorActionListener((v, actionId, event) -> {
             Log.i("EditorActionListenerTest", "Callback triggered!");
             if (actionId == EditorInfo.IME_ACTION_DONE) {
