@@ -13,11 +13,13 @@ import java.util.Arrays;
 public class ExchangeRateUpdateRunnable implements Runnable {
     private final String ECB_DAILY_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
     private final ExchangeRateDatabase exchangeRateDatabase;
+    private final ExchangeRateUpdateNotifier exchangeRateUpdateNotifier;
     private final MainActivity mainActivity;
 
     public ExchangeRateUpdateRunnable(MainActivity mainActivity, ExchangeRateDatabase exchangeRateDatabase) {
         this.mainActivity = mainActivity;
         this.exchangeRateDatabase = exchangeRateDatabase;
+        this.exchangeRateUpdateNotifier = new ExchangeRateUpdateNotifier(mainActivity);
     }
 
     @Override
@@ -27,6 +29,7 @@ public class ExchangeRateUpdateRunnable implements Runnable {
 
     private void updateCurrencies() {
         try {
+            exchangeRateUpdateNotifier.showAndUpdateNotification("Updating currencies...");
             URL url = new URL(ECB_DAILY_URL);
             URLConnection connection = url.openConnection();
 
@@ -48,6 +51,7 @@ public class ExchangeRateUpdateRunnable implements Runnable {
                 }
                 eventType = parser.next();
             }
+            exchangeRateUpdateNotifier.showAndUpdateNotification("Currencies are up-to-date now :)");
         } catch (Exception ignored) {
         }
 
