@@ -1,6 +1,7 @@
 package com.jungma.currencyconverter;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -25,7 +26,6 @@ public class ExchangeRateUpdateRunnable implements Runnable {
     }
 
     private void updateCurrencies() {
-        Log.i("Concurrency", "Start update");
         try {
             URL url = new URL(ECB_DAILY_URL);
             URLConnection connection = url.openConnection();
@@ -50,6 +50,13 @@ public class ExchangeRateUpdateRunnable implements Runnable {
             }
         } catch (Exception ignored) {
         }
-        Log.i("Concurrency", "End update");
+
+        mainActivity.runOnUiThread(() -> {
+            CharSequence text = "Currencies Update finished!";
+            int duration = Toast.LENGTH_SHORT;
+
+            Toast toast = Toast.makeText(mainActivity, text, duration);
+            toast.show();
+        });
     }
 }
