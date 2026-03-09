@@ -4,6 +4,8 @@
     <item android:title="CurrencyList"
         android:id="@+id/appbar_menu_entry_currencylist"
         app:showAsAction="collapseActionView" />
+    <item android:title="Refresh Exchangerates"
+        android:id="@+id/appbar_menu_entry_refreshrates" />
     <item android:title="Share"
         android:id="@+id/appbar_menu_entry_share"
         app:showAsAction="ifRoom"
