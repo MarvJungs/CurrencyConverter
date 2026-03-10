@@ -1,8 +1,9 @@
 package com.jungma.currencyconverter;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,19 +22,25 @@ import androidx.core.view.MenuItemCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserFactory;
-
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private final ExchangeRateDatabase exchangeRateDatabase = new ExchangeRateDatabase();
     private final int PRECISION = 3;
+    private final static String ID_SOURCE_CURRENCY = "sourceCurrency";
+    private final static String ID_TARGET_CURRENCY = "targetCurrency";
+    private final static String ID_AMOUNT_CURRENCY = "amountCurrency";
+    private final static String ID_RESULT = "result";
+
     private ShareActionProvider shareActionProvider;
     private CurrencyListAdapter currencyListAdapter;
     private ExchangeRateUpdateRunnable exchangeRateUpdateRunnable;
+
+    private Spinner spinner_currencyFrom;
+    private Spinner spinner_currencyTo;
+    private EditText input_amount;
+    private TextView textView_result;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,8 +52,12 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        Spinner spinner_currencyFrom = findViewById(R.id.spinner_currencyFrom);
-        Spinner spinner_currencyTo = findViewById(R.id.spinner_currencyTo);
+
+        spinner_currencyFrom = findViewById(R.id.spinner_currencyFrom);
+        spinner_currencyTo = findViewById(R.id.spinner_currencyTo);
+        input_amount = findViewById(R.id.input_amount);
+        textView_result = findViewById(R.id.textView_result);
+
         currencyListAdapter = new CurrencyListAdapter(exchangeRateDatabase);
 
         spinner_currencyFrom.setAdapter(currencyListAdapter);
@@ -54,6 +65,46 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.app_toolbar_main);
         setSupportActionBar(toolbar);
+
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        String sourceCurrency = spinner_currencyFrom.getSelectedItem().toString();
+        String targetCurrency = spinner_currencyTo.getSelectedItem().toString();
+        String amountCurrency = input_amount.getText().toString();
+        String result = textView_result.getText().toString();
+
+        editor.putString(ID_SOURCE_CURRENCY, sourceCurrency);
+        editor.putString(ID_TARGET_CURRENCY, targetCurrency);
+        editor.putString(ID_AMOUNT_CURRENCY, amountCurrency);
+        editor.putString(ID_RESULT, result);
+
+        editor.apply();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        SharedPreferences sharedPreferences = getPreferences(Context.MODE_PRIVATE);
+        List<String> currencies = Arrays.asList(exchangeRateDatabase.getCurrencies());
+
+        String sourceCurrency = sharedPreferences.getString(ID_SOURCE_CURRENCY, (String) currencyListAdapter.getItem(0));
+        String targetCurrency = sharedPreferences.getString(ID_TARGET_CURRENCY, (String) currencyListAdapter.getItem(0));
+        String amountCurrency = sharedPreferences.getString(ID_AMOUNT_CURRENCY, "0");
+        String result = sharedPreferences.getString(ID_RESULT, "0");
+
+        spinner_currencyFrom.setSelection(currencies.indexOf(sourceCurrency));
+        spinner_currencyTo.setSelection(currencies.indexOf(targetCurrency));
+        input_amount.setText(amountCurrency);
+        textView_result.setText(result);
     }
 
     @Override
@@ -80,11 +131,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void calculate(View view) {
-        Spinner spinner_currencyFrom = findViewById(R.id.spinner_currencyFrom);
-        Spinner spinner_currencyTo = findViewById(R.id.spinner_currencyTo);
-        EditText input_amount = findViewById(R.id.input_amount);
-        TextView textView_result = findViewById(R.id.textView_result);
-
         String currency_from = spinner_currencyFrom.getSelectedItem().toString();
         String currency_to = spinner_currencyTo.getSelectedItem().toString();
         double amount = Double.parseDouble(input_amount.getText().toString());
