@@ -3,7 +3,10 @@ package com.jungma.currencyconverter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -66,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.app_toolbar_main);
         setSupportActionBar(toolbar);
 
-
+        setupCurrencies();
     }
 
     @Override
@@ -150,5 +153,28 @@ public class MainActivity extends AppCompatActivity {
             shareIntent.putExtra(Intent.EXTRA_TEXT, text);
         }
         shareActionProvider.setShareIntent(shareIntent);
+    }
+
+    private void setupCurrencies() {
+        ExchangeRateDbHelper exchangeRateDbHelper = new ExchangeRateDbHelper(this);
+        SQLiteDatabase sqLiteDatabase = exchangeRateDbHelper.getReadableDatabase();
+        String[] projection = {
+                BaseColumns._ID,
+                exchangeRateDbHelper.EXCHANGERATE_COL_CURRENCYNAME,
+                exchangeRateDbHelper.EXCHANGERATE_COL_RATEFORONEEURO
+        };
+
+        Cursor cursor = sqLiteDatabase.query(exchangeRateDbHelper.EXCHANGERATE_TABLE, projection, null, null, null,null, null);
+
+        while (cursor.moveToNext()) {
+            String currencyName = cursor.getString(cursor.getColumnIndexOrThrow(exchangeRateDbHelper.EXCHANGERATE_COL_CURRENCYNAME));
+            double rateForOneEuro = cursor.getDouble(cursor.getColumnIndexOrThrow(exchangeRateDbHelper.EXCHANGERATE_COL_RATEFORONEEURO));
+
+            if (Arrays.asList(exchangeRateDatabase.getCurrencies()).contains(currencyName)) {
+                exchangeRateDatabase.setExchangeRate(currencyName, rateForOneEuro);
+                Log.i("sqlite", currencyName + " = " + rateForOneEuro);
+            }
+        }
+        cursor.close();
     }
 }

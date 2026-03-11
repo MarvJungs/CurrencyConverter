@@ -1,5 +1,7 @@
 package com.jungma.currencyconverter;
 
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -15,11 +17,13 @@ public class ExchangeRateUpdateRunnable implements Runnable {
     private final ExchangeRateDatabase exchangeRateDatabase;
     private final ExchangeRateUpdateNotifier exchangeRateUpdateNotifier;
     private final MainActivity mainActivity;
+    private ExchangeRateDbHelper exchangeRateDbHelper;
 
     public ExchangeRateUpdateRunnable(MainActivity mainActivity, ExchangeRateDatabase exchangeRateDatabase) {
         this.mainActivity = mainActivity;
         this.exchangeRateDatabase = exchangeRateDatabase;
         this.exchangeRateUpdateNotifier = new ExchangeRateUpdateNotifier(mainActivity);
+        this.exchangeRateDbHelper = new ExchangeRateDbHelper(mainActivity);
     }
 
     @Override
@@ -28,6 +32,7 @@ public class ExchangeRateUpdateRunnable implements Runnable {
     }
 
     private void updateCurrencies() {
+        SQLiteDatabase sqLiteDatabase = exchangeRateDbHelper.getWritableDatabase();
         try {
             exchangeRateUpdateNotifier.showAndUpdateNotification("Updating currencies...");
             URL url = new URL(ECB_DAILY_URL);
@@ -44,8 +49,20 @@ public class ExchangeRateUpdateRunnable implements Runnable {
                         String currency = parser.getAttributeValue(null, "currency");
                         String rateForOneEuro = parser.getAttributeValue(null, "rate");
 
-                        if (Arrays.asList(exchangeRateDatabase.getCurrencies()).contains(currency)) {
-                            exchangeRateDatabase.setExchangeRate(currency, Double.parseDouble(rateForOneEuro));
+                        if (currency != null && rateForOneEuro != null) {
+                            ContentValues contentValues = new ContentValues();
+                            contentValues.put(exchangeRateDbHelper.EXCHANGERATE_COL_CURRENCYNAME, currency);
+                            contentValues.put(exchangeRateDbHelper.EXCHANGERATE_COL_RATEFORONEEURO, rateForOneEuro);
+                            if (!exchangeRateDbHelper.hasCurrency(currency)) {
+                                sqLiteDatabase.insert(exchangeRateDbHelper.EXCHANGERATE_TABLE, null, contentValues);
+                            } else {
+                                sqLiteDatabase.update(exchangeRateDbHelper.EXCHANGERATE_TABLE, contentValues, exchangeRateDbHelper.EXCHANGERATE_COL_CURRENCYNAME + " = ?", new String[]{currency});
+                            }
+
+
+                            if (Arrays.asList(exchangeRateDatabase.getCurrencies()).contains(currency)) {
+                                exchangeRateDatabase.setExchangeRate(currency, Double.parseDouble(rateForOneEuro));
+                            }
                         }
                     }
                 }
@@ -53,6 +70,7 @@ public class ExchangeRateUpdateRunnable implements Runnable {
             }
             exchangeRateUpdateNotifier.showAndUpdateNotification("Currencies are up-to-date now :)");
         } catch (Exception ignored) {
+            ignored.printStackTrace();
         }
 
         mainActivity.runOnUiThread(() -> {
