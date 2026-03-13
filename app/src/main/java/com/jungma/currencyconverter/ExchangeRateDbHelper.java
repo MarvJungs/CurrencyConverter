@@ -9,7 +9,7 @@ import android.provider.BaseColumns;
 import androidx.annotation.Nullable;
 
 public class ExchangeRateDbHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "exchangerates.db";
 
     public static final String EXCHANGERATE_TABLE = "exchangerate";
@@ -18,15 +18,13 @@ public class ExchangeRateDbHelper extends SQLiteOpenHelper {
 
     private static final String SQL_CREATE_ENTRIES = "CREATE TABLE " + EXCHANGERATE_TABLE + " ("
             + BaseColumns._ID + " INTEGER PRIMARY KEY,"
-            + EXCHANGERATE_COL_CURRENCYNAME + " TEXT,"
+            + EXCHANGERATE_COL_CURRENCYNAME + " TEXT UNIQUE,"
             + EXCHANGERATE_COL_RATEFORONEEURO + " DECIMAL)";
 
     private static final String SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS " + EXCHANGERATE_TABLE;
-    private SQLiteDatabase sqLiteDatabase;
 
     public ExchangeRateDbHelper(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        sqLiteDatabase = this.getReadableDatabase();
     }
 
     @Override
@@ -41,6 +39,7 @@ public class ExchangeRateDbHelper extends SQLiteOpenHelper {
     }
 
     public boolean hasCurrency(String currency) {
+        SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
         String[] projection = {
                 BaseColumns._ID,
                 EXCHANGERATE_COL_CURRENCYNAME,
