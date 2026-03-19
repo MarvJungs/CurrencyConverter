@@ -45,6 +45,7 @@ public class ExchangeRateUpdateNotifier {
     }
 
     public void showAndUpdateNotification(String text) {
+        Log.d("Motification", "Notification sent!");
         notificationBuilder.setContentText(text);
         notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
     }

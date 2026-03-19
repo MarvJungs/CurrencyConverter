@@ -1,6 +1,7 @@
 package com.jungma.currencyconverter;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import android.widget.Toast;
@@ -14,16 +15,14 @@ import java.util.Arrays;
 
 public class ExchangeRateUpdateRunnable implements Runnable {
     private final String ECB_DAILY_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
-    private final ExchangeRateDatabase exchangeRateDatabase;
     private final ExchangeRateUpdateNotifier exchangeRateUpdateNotifier;
-    private final MainActivity mainActivity;
-    private ExchangeRateDbHelper exchangeRateDbHelper;
+    private final Context context;
+    private final ExchangeRateDbHelper exchangeRateDbHelper;
 
-    public ExchangeRateUpdateRunnable(MainActivity mainActivity, ExchangeRateDatabase exchangeRateDatabase) {
-        this.mainActivity = mainActivity;
-        this.exchangeRateDatabase = exchangeRateDatabase;
-        this.exchangeRateUpdateNotifier = new ExchangeRateUpdateNotifier(mainActivity);
-        this.exchangeRateDbHelper = new ExchangeRateDbHelper(mainActivity);
+    public ExchangeRateUpdateRunnable(Context context) {
+        this.context = context.getApplicationContext();
+        this.exchangeRateUpdateNotifier = new ExchangeRateUpdateNotifier(this.context);
+        this.exchangeRateDbHelper = new ExchangeRateDbHelper(this.context);
     }
 
     @Override
@@ -34,7 +33,6 @@ public class ExchangeRateUpdateRunnable implements Runnable {
     private void updateCurrencies() {
         SQLiteDatabase sqLiteDatabase = exchangeRateDbHelper.getWritableDatabase();
         try {
-            exchangeRateUpdateNotifier.showAndUpdateNotification("Updating currencies...");
             URL url = new URL(ECB_DAILY_URL);
             URLConnection connection = url.openConnection();
 
@@ -58,11 +56,6 @@ public class ExchangeRateUpdateRunnable implements Runnable {
                             } else {
                                 sqLiteDatabase.update(exchangeRateDbHelper.EXCHANGERATE_TABLE, contentValues, exchangeRateDbHelper.EXCHANGERATE_COL_CURRENCYNAME + " = ?", new String[]{currency});
                             }
-
-
-                            if (Arrays.asList(exchangeRateDatabase.getCurrencies()).contains(currency)) {
-                                exchangeRateDatabase.setExchangeRate(currency, Double.parseDouble(rateForOneEuro));
-                            }
                         }
                     }
                 }
@@ -72,13 +65,5 @@ public class ExchangeRateUpdateRunnable implements Runnable {
         } catch (Exception ignored) {
             ignored.printStackTrace();
         }
-
-        mainActivity.runOnUiThread(() -> {
-            CharSequence text = "Currencies Update finished!";
-            int duration = Toast.LENGTH_SHORT;
-
-            Toast toast = Toast.makeText(mainActivity, text, duration);
-            toast.show();
-        });
     }
 }
