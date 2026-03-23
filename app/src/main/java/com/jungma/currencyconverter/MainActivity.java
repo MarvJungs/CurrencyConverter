@@ -1,11 +1,15 @@
 package com.jungma.currencyconverter;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.provider.BaseColumns;
 import android.util.Log;
 import android.view.Menu;
@@ -14,6 +18,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -31,6 +36,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private final ExchangeRateDatabase exchangeRateDatabase = new ExchangeRateDatabase();
     private final int PRECISION = 3;
+    private final int JOB_ID = 101;
     private final static String ID_SOURCE_CURRENCY = "sourceCurrency";
     private final static String ID_TARGET_CURRENCY = "targetCurrency";
     private final static String ID_AMOUNT_CURRENCY = "amountCurrency";
@@ -69,6 +75,26 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.app_toolbar_main);
         setSupportActionBar(toolbar);
 
+
+
+        JobScheduler jobScheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        boolean jobExists = false;
+        for (JobInfo job : jobScheduler.getAllPendingJobs()) {
+            if (job.getId() == JOB_ID) {
+                jobExists = true;
+                break;
+            }
+        }
+        if (!jobExists) {
+            ComponentName componentName = new ComponentName(this, ExchangeratesUpdaterJobService.class);
+            JobInfo jobInfo = new JobInfo.Builder(JOB_ID, componentName)
+                    .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                    .setRequiresDeviceIdle(false)
+                    .setRequiresCharging(false)
+                    .setPeriodic(1000 * 60 * 60 * 24)
+                    .build();
+            jobScheduler.schedule(jobInfo);
+        }
         setupCurrencies();
     }
 
@@ -108,6 +134,8 @@ public class MainActivity extends AppCompatActivity {
         spinner_currencyTo.setSelection(currencies.indexOf(targetCurrency));
         input_amount.setText(amountCurrency);
         textView_result.setText(result);
+
+        setupCurrencies();
     }
 
     @Override
@@ -125,10 +153,17 @@ public class MainActivity extends AppCompatActivity {
             startActivity(currencylistIntent);
             return true;
         } else if (item.getItemId() == R.id.appbar_menu_entry_refreshrates) {
-            exchangeRateUpdateRunnable = new ExchangeRateUpdateRunnable(this, exchangeRateDatabase);
-            Thread t = new Thread(exchangeRateUpdateRunnable);
-            t.start();
-            currencyListAdapter.notifyDataSetChanged();
+            exchangeRateUpdateRunnable = new ExchangeRateUpdateRunnable(this);
+            new Thread(() -> {
+                exchangeRateUpdateRunnable.run();
+                setupCurrencies();
+                CharSequence text = "Currencies Update finished!";
+                int duration = Toast.LENGTH_SHORT;
+                this.runOnUiThread(() -> {
+                    Toast toast = Toast.makeText(this, text, duration);
+                    toast.show();
+                });
+            }).start();
         }
         return true;
     }
@@ -176,5 +211,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         cursor.close();
+        currencyListAdapter.notifyDataSetChanged();
     }
 }
